@@ -25,8 +25,18 @@ namespace BDArmoryAI
         private bool showGUI = false;
         private Rect windowRect = new Rect(300, 200, 300, 200);
 
+        private string craftsFolder = "GameData/BDArmoryAI/Ships/";
+        private List<string> craftFiles = new List<string>();
+        private int selectedCraftIndex = 0;
+        private bool craftsLoaded = false;
+        private int quantityToSpawn = 1;
+
         private double spawnRange = 50000.0;
         private bool useActiveVessel = true;
+
+        private bool spawnFlying = false;
+        private double spawnAltitude = 500.0;
+        private double spawnSpeed = 0;
 
         private double manualLat = 0.0;
         private double manualLon = 0.0;
@@ -85,7 +95,7 @@ namespace BDArmoryAI
         void OnGUI()
         {
             if (!showGUI) return;
-
+            if (!craftsLoaded) LoadCraftNames();
             windowRect = GUILayout.Window(GetInstanceID(), windowRect, DrawWindow, "Dynamic Spawner");
         }
 
@@ -99,19 +109,47 @@ namespace BDArmoryAI
             if (!useActiveVessel)
             {
                 GUILayout.Label("Manual Latitude:");
-                double.TryParse(GUILayout.TextField(manualLat.ToString()), out manualLat);
+                string latStr = GUILayout.TextField(manualLat.ToString());
+                if (double.TryParse(latStr, out double parsedLat))
+                {
+                    manualLat = parsedLat;
+                }
                 GUILayout.Label("Manual Longitude:");
-                double.TryParse(GUILayout.TextField(manualLon.ToString()), out manualLon);
+                string lonStr = GUILayout.TextField(manualLon.ToString());
+                if (double.TryParse(lonStr, out double parsedLon))
+                {
+                    manualLon = parsedLon;
+                }
+            }
+
+            spawnFlying = GUILayout.Toggle(spawnFlying, "Spawn Flying");
+
+            if (spawnFlying)
+            {
+                GUILayout.Label("Altitude (m): " + spawnAltitude.ToString("F0"));
+                spawnAltitude = GUILayout.HorizontalSlider((float)spawnAltitude, 10f, 50000f);
+                GUILayout.Label("Speed (m/s): " + spawnSpeed.ToString("F0"));
+                spawnSpeed = GUILayout.HorizontalSlider((float)spawnSpeed, 0f, 1000f);
             }
 
             GUILayout.Label("Spawn Range (m): " + spawnRange.ToString("F0"));
             spawnRange = GUILayout.HorizontalSlider((float)spawnRange, 1000f, 50000f);
 
+            GUILayout.Label("Spawn Quantity: " + quantityToSpawn);
+            string qtyStr = GUILayout.TextField(quantityToSpawn.ToString());
+            if (int.TryParse(qtyStr, out int parsedQty))
+            {
+                quantityToSpawn = parsedQty;
+            }
+
+            GUILayout.Label("Select Craft:");
+            selectedCraftIndex = GUILayout.SelectionGrid(selectedCraftIndex, craftFiles.ToArray(), 1);
+
             GUILayout.Space(10);
 
-            if (GUILayout.Button("Spawn Tank Randomly"))
+            if (GUILayout.Button("Spawn Craft Randomly"))
             {
-                SpawnTankRandomly();
+                SpawnCraftRandomly();
             }
 
             if (GUILayout.Button("Close"))
@@ -123,7 +161,7 @@ namespace BDArmoryAI
             GUI.DragWindow();
         }
 
-        void SpawnTankRandomly()
+        void SpawnCraftRandomly()
         {
             foreach (var vessel in FlightGlobals.Vessels)
             {
@@ -176,13 +214,81 @@ namespace BDArmoryAI
                             return;
                         }
                     } while (body.TerrainAltitude(spawnPos.x, spawnPos.y) <= 0.5);
+                    if (spawnFlying)
+                    {
+                        spawnPos.z = spawnAltitude + FlightGlobals.currentMainBody.TerrainAltitude(spawnPos.x, spawnPos.y);
+                    }
+                    else
+                    {
+                        spawnPos.z = 0.2f + FlightGlobals.currentMainBody.TerrainAltitude(spawnPos.x, spawnPos.y);
+                    }
 
-                    spawnPos.z = 0.2f + FlightGlobals.currentMainBody.TerrainAltitude(spawnPos.x, spawnPos.y);
-                    VesselSpawner.SpawnVesselFromCraftFile("GameData/ContractPacks/KerbheedMartin/ships/Enemy-m1abram-tb.craft", spawnPos, 180f, 0f, 0f, out shipFacility);
+                    for (int i = 0; i < quantityToSpawn; i++)
+                    {
+                        FlightGlobals.ForceSetActiveVessel(FlightGlobals.ActiveVessel);
+                        Vessel spawnedVessel = VesselSpawner.SpawnVesselFromCraftFile(craftsFolder + craftFiles[selectedCraftIndex] + ".craft", spawnPos, 0f, 0f, 0f, out shipFacility);
+                        if (spawnFlying)
+                            StartCoroutine(SpawnFlying(spawnedVessel));
+                        else
+                            StartCoroutine(SpawnLanded(spawnedVessel));
+                        spawnPos.x += 0.006f;
+                    }
                     UnityEngine.Debug.Log("Spawned vessel at: " + spawnPos + " : " + FlightGlobals.currentMainBody);
 
                 }
             }
+        }
+
+        void LoadCraftNames()
+        {
+            craftFiles.Clear();    
+            string fullPath = System.IO.Path.Combine(KSPUtil.ApplicationRootPath, craftsFolder);
+
+            if (System.IO.Directory.Exists(fullPath))
+            {
+                var files = System.IO.Directory.GetFiles(fullPath, "*.craft");
+                foreach (var file in files)
+                {
+                    craftFiles.Add(System.IO.Path.GetFileNameWithoutExtension(file));
+                }
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("[BDA-AI] Dynamic Spawner: Crafts folder not found at " + fullPath);
+            }
+            
+            if (craftFiles.Count == 0)
+            {
+                UnityEngine.Debug.LogWarning("[BDA-AI] Dynamic Spawner: No craft files found in " + fullPath);
+            }
+            
+            craftsLoaded = true;
+        }
+
+        IEnumerator SpawnFlying(Vessel vessel)
+        {
+            yield return new WaitForSeconds(2.5f);
+
+            if (vessel == null)
+                yield break;
+
+            vessel.SetPosition(FlightGlobals.currentMainBody.GetWorldSurfacePosition(vessel.latitude, vessel.longitude, spawnAltitude));
+
+            Vector3d forward = vessel.transform.up;
+            Vector3d surfaceVelocity = forward * spawnSpeed + FlightGlobals.currentMainBody.getRFrmVel(vessel.CoM);
+
+            vessel.SetWorldVelocity(surfaceVelocity);
+            UnityEngine.Debug.Log("[BDA-AI] Applied initial velocity of " + spawnSpeed + " m/s to vessel: " + vessel.vesselName);
+        }
+
+        IEnumerator SpawnLanded(Vessel vessel)
+        {
+            yield return new WaitForSeconds(0f);
+            vessel.Landed = true;
+            vessel.Splashed = false;
+            vessel.situation = Vessel.Situations.LANDED;
+
+            vessel.GoOnRails();
         }
     }
 }

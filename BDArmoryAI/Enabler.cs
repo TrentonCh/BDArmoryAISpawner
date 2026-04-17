@@ -33,7 +33,8 @@ namespace BDArmoryAI
         private void OnVesselGoOffRails(Vessel vessel)
         {
             UnityEngine.Debug.Log("[BDA-AI] Vessel off rails: " + vessel.vesselName);
-            StartCoroutine(SettleToGround(vessel));
+            //StartCoroutine(SettleToGround(vessel));
+            StartCoroutine(HandleVessel(vessel));
         }
 
         private IEnumerator HandleVessel(Vessel vessel)
@@ -97,11 +98,10 @@ namespace BDArmoryAI
 
         private void EnableAI(Vessel vessel)
         {
-            UnityEngine.Debug.Log("DEBUG1");
             // PILOT AI
             foreach (var ai in vessel.FindPartModulesImplementing<BDArmory.Control.BDModulePilotAI>())
             {
-                UnityEngine.Debug.Log("DEBUG3");
+
                 ai.ActivatePilot();
                 UnityEngine.Debug.Log("[BDA-AI] Pilot AI enabled");
 
@@ -110,9 +110,10 @@ namespace BDArmoryAI
             // SURFACE PILOT AI
             foreach (var ai in vessel.FindPartModulesImplementing<BDArmory.Control.BDModuleSurfaceAI>())
             {
-                UnityEngine.Debug.Log("DEBUG4");
+
                 ai.ActivatePilot();
                 UnityEngine.Debug.Log("[BDA-AI] Pilot AI enabled");
+
             }
         }
 
