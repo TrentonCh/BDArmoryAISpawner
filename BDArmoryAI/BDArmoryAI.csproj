@@ -7,8 +7,8 @@
     <ProjectGuid>{385B9F44-FF2E-44DA-8906-309E713060E9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BDArmoryAI</RootNamespace>
-    <AssemblyName>BDArmoryAI</AssemblyName>
+    <RootNamespace>BDArmoryAISpawner</RootNamespace>
+    <AssemblyName>BDArmoryAISpawner</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>D:\Program Files\Steam\steamapps\common\Kerbal Space Program\GameData\BDArmoryAI\Plugins\</OutputPath>
+    <OutputPath>D:\Program Files\Steam\steamapps\common\Kerbal Space Program\GameData\BDArmoryAISpawner\Plugins\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>

@@ -12,14 +12,14 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace BDArmoryAI
+namespace BDArmoryAISpawner
 {
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class Enabler : MonoBehaviour
     {
         void Start()
         {
-            UnityEngine.Debug.Log("BDArmoryAIEnabler Plugin loaded!");
+            UnityEngine.Debug.Log("BDArmoryAISpawner Plugin loaded!");
             GameEvents.onVesselGoOffRails.Add(OnVesselGoOffRails);
 
         }

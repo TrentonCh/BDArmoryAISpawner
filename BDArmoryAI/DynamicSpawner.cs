@@ -15,7 +15,7 @@ using System.Text;
 using UnityEngine;
 
 
-namespace BDArmoryAI
+namespace BDArmoryAISpawner
 {
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class DynamicSpawner : MonoBehaviour
@@ -25,7 +25,7 @@ namespace BDArmoryAI
         private bool showGUI = false;
         private Rect windowRect = new Rect(300, 200, 300, 200);
 
-        private string craftsFolder = "GameData/BDArmoryAI/Ships/";
+        private string craftsFolder = "GameData/BDArmoryAISpawner/Ships/";
         private List<string> craftFiles = new List<string>();
         private string[] craftFilesArray;
 
@@ -66,7 +66,7 @@ namespace BDArmoryAI
         {
             if (ApplicationLauncher.Ready && button == null)
             {
-                Texture2D icon = GameDatabase.Instance.GetTexture("BDArmoryAI/Textures/icon/icon_ai.png", false);
+                Texture2D icon = GameDatabase.Instance.GetTexture("BDArmoryAISpawner/Textures/icon/icon_ai.png", false);
                 button = ApplicationLauncher.Instance.AddModApplication(OnTrue, OnFalse, null, null, null, null, ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION | ApplicationLauncher.AppScenes.SPACECENTER, icon);
                 UnityEngine.Debug.Log("[BDA-AI] Toolbar button added");
             }
