@@ -53,33 +53,6 @@ namespace BDArmoryAI
             EnableGaurdMode(vessel);
         }
 
-        private IEnumerator SettleToGround(Vessel vessel)
-        {
-            vessel.Landed = false;
-            vessel.situation = Vessel.Situations.FLYING;
-
-            float timeout = 2.0f;
-            float elapsed = 0f;
-
-            while (elapsed < timeout)
-            {
-                yield return new WaitForFixedUpdate();
-
-                if (vessel == null || !vessel.loaded)
-                    yield break;
-
-                elapsed += TimeWarp.fixedDeltaTime;
-
-                vessel.SetWorldVelocity(Vector3d.zero);
-                UnityEngine.Debug.Log("[BDA-AI] Settling vessel to ground: " + vessel.vesselName);
-            }
-
-            yield return new WaitForSeconds(1.0f);
-            vessel.Landed = true;
-            vessel.situation = Vessel.Situations.LANDED;
-            StartCoroutine(HandleVessel(vessel));
-        }
-
         private bool IsTargetVessel(Vessel vessel)
         {
             if (string.IsNullOrEmpty(vessel.vesselName))

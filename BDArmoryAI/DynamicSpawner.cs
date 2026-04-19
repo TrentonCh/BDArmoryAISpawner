@@ -282,20 +282,17 @@ namespace BDArmoryAI
                 Vector3d forward = vessel.transform.up;
                 Vector3d surfaceVelocity = forward * spawnSpeed + FlightGlobals.currentMainBody.getRFrmVel(vessel.CoM);
 
-                vessel.SetWorldVelocity(surfaceVelocity);
                 vessel.Landed = false;
                 vessel.Splashed = false;
                 vessel.situation = Vessel.Situations.FLYING;
+
+                vessel.SetWorldVelocity(surfaceVelocity);
                 UnityEngine.Debug.Log("[BDA-AI] Applied initial velocity of " + spawnSpeed + " m/s to vessel: " + vessel.vesselName);
             }
             else
             {
-                vessel.SetPosition(FlightGlobals.currentMainBody.GetWorldSurfacePosition(vessel.latitude, vessel.longitude, spawnAltitude));
-                vessel.Landed = true;
-                vessel.Splashed = false;
-                vessel.situation = Vessel.Situations.LANDED;
-                vessel.GoOnRails();
-                vessel.GoOffRails();
+
+                UnityEngine.Debug.Log("[BDA-AI] Spawned vessel on the ground: ");
             }
         }
 
