@@ -294,6 +294,8 @@ namespace BDArmoryAISpawner
 
                 UnityEngine.Debug.Log("[BDA-AI] Spawned vessel on the ground: ");
             }
+            EnableAI(vessel);
+            EnableGaurdMode(vessel);
         }
 
         private void DestroyAI(Part part)
@@ -311,6 +313,43 @@ namespace BDArmoryAISpawner
                         otherParts.Die();
                 }
                 UnityEngine.Debug.Log("[BDA-AI] Vessel destroyed");
+            }
+        }
+
+        private void EnableAI(Vessel vessel)
+        {
+            // PILOT AI
+            foreach (var ai in vessel.FindPartModulesImplementing<BDArmory.Control.BDModulePilotAI>())
+            {
+
+                ai.ActivatePilot();
+                UnityEngine.Debug.Log("[BDA-AI] Pilot AI enabled");
+
+            }
+
+            // SURFACE PILOT AI
+            foreach (var ai in vessel.FindPartModulesImplementing<BDArmory.Control.BDModuleSurfaceAI>())
+            {
+
+                ai.ActivatePilot();
+                UnityEngine.Debug.Log("[BDA-AI] Pilot AI enabled");
+
+            }
+        }
+
+        private void EnableGaurdMode(Vessel vessel)
+        {
+            foreach (var wm in vessel.FindPartModulesImplementing<BDArmory.Control.MissileFire>())
+            {
+                if (!wm.guardMode)
+                {
+                    wm.ToggleGuardMode();
+                    UnityEngine.Debug.Log("[BDA-AI] Guard mode enabled for weapon: " + vessel.name);
+                    UnityEngine.Debug.Log("Spawned at " + vessel.GetWorldPos3D());
+                }
+
+
+                UnityEngine.Debug.Log("[BDA-AI] Guard mode enabled for weapon: " + wm.part.partName);
             }
         }
     }
