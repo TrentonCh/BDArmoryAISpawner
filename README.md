@@ -8,6 +8,7 @@ BDArmory Plus, Physics Range Extender
 
 You can add vehicles to the spawner's list by adding .craft files into BDArmoryAISpawner/Ships/
 The GUI will automatically populate the crafts you have in there.
+Also, crafts must have engines or other parts activated when spawned as the AI will not activate staging.
 
 This tool will have bugs and glitches, feel free to report them to me and suggest additional features!
 
