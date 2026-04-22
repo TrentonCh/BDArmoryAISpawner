@@ -1,5 +1,6 @@
 ﻿using BDArmory;
 using BDArmory.Competition;
+using BDArmory.Competition.OrchestrationStrategies;
 using BDArmory.Control;
 using BDArmory.Modules;
 using BDArmory.UI;
@@ -127,7 +128,7 @@ namespace BDArmoryAISpawner
             }
 
             GUILayout.Label("Spawn Range (m): " + spawnRange.ToString("F0"));
-            spawnRange = GUILayout.HorizontalSlider((float)spawnRange, 1000f, 50000f);
+            spawnRange = GUILayout.HorizontalSlider((float)spawnRange, 1000f, 100000);
 
             GUILayout.Label("Select Crafts:");
 
@@ -143,17 +144,30 @@ namespace BDArmoryAISpawner
                 }
 
                 craft.spawnFlying = GUILayout.Toggle(craft.spawnFlying, "Spawn Flying");
+                if (!craft.selected)
+                    craft.spawnFlying = false;
 
                 if (craft.spawnFlying)
                 {
-                    
-                    GUILayout.Label("Altitude (m): " + craft.spawnAltitude.ToString("F0"));
-                    craft.spawnAltitude = GUILayout.HorizontalSlider((float)craft.spawnAltitude, 10f, 25000f);
-                    GUILayout.Label("Speed (m/s): " + craft.spawnSpeed.ToString("F0"));
-                    craft.spawnSpeed = GUILayout.HorizontalSlider((float)craft.spawnSpeed, 0f, 1000f);
+                    GUILayout.Label("Altitude (m): " + craft.spawnAltitude.ToString("F0"), GUILayout.ExpandWidth(false));
+                    GUILayout.Space(5);
+                    craft.spawnAltitude = GUILayout.HorizontalSlider((float)craft.spawnAltitude, 10f, 25000f, GUILayout.MaxWidth(100), GUILayout.MinWidth(100));
+                    GUILayout.Label("Speed (m/s): " + craft.spawnSpeed.ToString("F0"), GUILayout.ExpandWidth(false));
+                    GUILayout.Space(5);
+                    craft.spawnSpeed = GUILayout.HorizontalSlider((float)craft.spawnSpeed, 0f, 1000f, GUILayout.MaxWidth(75), GUILayout.MinWidth(75));
                 }
 
                 GUILayout.EndHorizontal();
+            }
+
+            windowRect.width = 350;
+            foreach (var craft in craftSelectionList)
+            {
+                if (craft.spawnFlying)
+                {
+                    windowRect.width = 750;
+                    break;
+                }
             }
 
             friendly = GUILayout.Toggle(friendly, "Friendly");
