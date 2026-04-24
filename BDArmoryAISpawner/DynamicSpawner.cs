@@ -31,14 +31,12 @@ namespace BDArmoryAISpawner
         private string craftsFolder = "GameData/BDArmoryAISpawner/Ships/";
         private List<CraftSelection> craftSelectionList = new List<CraftSelection>(); 
 
-
-        private int selectedCraftIndex = 0;
         private bool craftsLoaded = false;
-        private int quantityToSpawn = 1;
 
         private double spawnRange = 50000.0;
         private bool useActiveVessel = true;
         bool useManualCoords = false;
+
 
         private string locationList = "GameData/BDArmoryAISpawner/SpawnLocations.txt";
         private List<SpawnLocation> spawnLocations = new List<SpawnLocation>();
@@ -154,6 +152,13 @@ namespace BDArmoryAISpawner
                             manualLon = location.lon;
                         }
                         GUILayout.EndHorizontal();
+                    }
+                    if (GUILayout.Button("Add Current Location to List"))
+                    {
+                        double lat = FlightGlobals.ActiveVessel.latitude;
+                        double lon = FlightGlobals.ActiveVessel.longitude;
+                        string name = "Location " + (spawnLocations.Count + 1);
+                        spawnLocations.Add(new SpawnLocation(name, lat, lon));
                     }
                 }
 
