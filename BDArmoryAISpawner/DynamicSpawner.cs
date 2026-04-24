@@ -12,6 +12,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -37,8 +38,10 @@ namespace BDArmoryAISpawner
 
         private double spawnRange = 50000.0;
         private bool useActiveVessel = true;
+        bool useManualCoords = false;
 
-
+        private string locationList = "GameData/BDArmoryAISpawner/SpawnLocations.txt";
+        private List<SpawnLocation> spawnLocations = new List<SpawnLocation>();
 
         private double manualLat = 0.0;
         private double manualLon = 0.0;
@@ -68,7 +71,7 @@ namespace BDArmoryAISpawner
         {
             if (ApplicationLauncher.Ready && button == null)
             {
-                Texture2D icon = GameDatabase.Instance.GetTexture("BDArmoryAISpawner/Textures/icon/icon_ai.png", false);
+                Texture2D icon = GameDatabase.Instance.GetTexture("BDArmoryAISpawner/Textures/icon/icon", false);
                 button = ApplicationLauncher.Instance.AddModApplication(OnTrue, OnFalse, null, null, null, null, ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION | ApplicationLauncher.AppScenes.SPACECENTER, icon);
                 UnityEngine.Debug.Log("[BDA-AI] Toolbar button added");
             }
@@ -100,7 +103,7 @@ namespace BDArmoryAISpawner
         void OnGUI()
         {
             if (!showGUI) return;
-            if (!craftsLoaded) LoadCraftNames();
+            if (!craftsLoaded) LoadCraftsAndLocations();
             windowRect = GUILayout.Window(GetInstanceID(), windowRect, DrawWindow, "Dynamic Spawner");
         }
 
@@ -113,22 +116,52 @@ namespace BDArmoryAISpawner
 
             if (!useActiveVessel)
             {
-                GUILayout.Label("Manual Latitude:");
-                string latStr = GUILayout.TextField(manualLat.ToString());
-                if (double.TryParse(latStr, out double parsedLat))
+                
+                useManualCoords = GUILayout.Toggle(useManualCoords, "Use Manual Coordinates");
+                if (useManualCoords)
                 {
-                    manualLat = parsedLat;
+                    GUILayout.Label("Manual Latitude:");
+                    string latStr = GUILayout.TextField(manualLat.ToString());
+                    if (double.TryParse(latStr, out double parsedLat))
+                    {
+                        manualLat = parsedLat;
+                    }
+                    GUILayout.Label("Manual Longitude:");
+                    string lonStr = GUILayout.TextField(manualLon.ToString());
+                    if (double.TryParse(lonStr, out double parsedLon))
+                    {
+                        manualLon = parsedLon;
+                    }
                 }
-                GUILayout.Label("Manual Longitude:");
-                string lonStr = GUILayout.TextField(manualLon.ToString());
-                if (double.TryParse(lonStr, out double parsedLon))
+
+                if (!useManualCoords)
                 {
-                    manualLon = parsedLon;
+                    foreach (var location in spawnLocations)
+                    {
+                        GUILayout.BeginHorizontal();
+                        location.selected = GUILayout.Toggle(location.selected, location.name);
+                        if (location.selected)
+                        {
+                            foreach (var otherLocation in spawnLocations)
+                            {
+                                if (otherLocation.selected = true)
+                                {
+                                    otherLocation.selected = false;
+                                }
+                            }
+                            location.selected = true;
+                            manualLat = location.lat;
+                            manualLon = location.lon;
+                        }
+                        GUILayout.EndHorizontal();
+                    }
                 }
+
+                
             }
 
             GUILayout.Label("Spawn Range (m): " + spawnRange.ToString("F0"));
-            spawnRange = GUILayout.HorizontalSlider((float)spawnRange, 1000f, 100000);
+            spawnRange = GUILayout.HorizontalSlider((float)spawnRange, 1f, 100000);
 
             GUILayout.Label("Select Crafts:");
 
@@ -271,9 +304,10 @@ namespace BDArmoryAISpawner
             }
         }
 
-        void LoadCraftNames()
+        void LoadCraftsAndLocations()
         {
-            craftSelectionList.Clear();    
+            craftSelectionList.Clear();
+            
             string fullPath = System.IO.Path.Combine(KSPUtil.ApplicationRootPath, craftsFolder);
 
             if (System.IO.Directory.Exists(fullPath))
@@ -294,6 +328,36 @@ namespace BDArmoryAISpawner
                 UnityEngine.Debug.LogWarning("[BDA-AI] Dynamic Spawner: No craft files found in " + fullPath);
             }
             craftsLoaded = true;
+
+
+            string locationPath = System.IO.Path.Combine(KSPUtil.ApplicationRootPath, locationList);
+            if (System.IO.File.Exists(locationPath))
+            {
+                foreach (var line in System.IO.File.ReadAllLines(locationPath))
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                    {
+                        string[] parts = line.Split(',');
+
+                        if (parts.Length != 3)
+                        {
+                            UnityEngine.Debug.LogWarning("[BDA-AI] Dynamic Spawner: Invalid line in spawn locations file: " + line);
+                            continue;
+                        }
+
+                        string name = parts[0].Trim();
+                        if (double.TryParse(parts[1].Trim(), out double lat) && double.TryParse(parts[2].Trim(), out double lon))
+                        {
+                            spawnLocations.Add(new SpawnLocation(name, lat, lon));
+                        }
+                        else
+                        {
+                            UnityEngine.Debug.LogWarning("[BDA-AI] Dynamic Spawner: Invalid coordinates in spawn locations file: " + line);
+
+                        }
+                    }
+                }
+            }
         }
 
         IEnumerator SetupSpawnVessel(Vessel vessel, CraftSelection craft)
@@ -403,6 +467,22 @@ namespace BDArmoryAISpawner
                 selected = false;
                 quantity = 1;
 
+            }
+        }
+
+        class SpawnLocation
+        {
+            public string name;
+            public bool selected;
+            public double lat;
+            public double lon;
+
+            public SpawnLocation(string name, double lat, double lon)
+            {
+                this.name = name;
+                this.lat = lat;
+                this.lon = lon;
+                selected = false;
             }
         }
     }
